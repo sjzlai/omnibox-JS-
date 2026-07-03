@@ -1,0 +1,405 @@
+// @name  94站点
+// @author
+// @description MacCMS采集聚合：94个资源站，保留 isAdult 标记，支持分类、搜索、详情、播放
+// @version 1.0.0
+
+const OmniBox = require('omnibox_sdk');
+
+const ID_SEP = '@@';
+const PLAY_SEP = '|||';
+const CACHE_MS = 7200 * 1000;
+const SITES = [
+  {"id":"1080zyku","api":"https://api.1080zyku.com/inc/api_mac10.php","name":"TV-1080资源","detail":"https://api.1080zyku.com","isAdult":false},
+  {"id":"155api","api":"https://155api.com/api.php/provide/vod","name":"AV-155资源","detail":"https://155api.com","isAdult":true},
+  {"id":"360zy","api":"https://360zy.com/api.php/provide/vod","name":"TV-360资源","detail":"https://360zy.com","isAdult":false},
+  {"id":"ckzy","api":"https://ckzy.me/api.php/provide/vod","name":"TV-CK资源","detail":"https://ckzy.me","isAdult":false},
+  {"id":"ukuapi","api":"https://api.ukuapi.com/api.php/provide/vod","name":"TV-U酷资源","detail":"https://api.ukuapi.com","isAdult":false},
+  {"id":"ukuapi88","api":"https://api.ukuapi88.com/api.php/provide/vod","name":"TV-U酷资源88","detail":"https://api.ukuapi88.com","isAdult":false},
+  {"id":"ikunzy","api":"https://ikunzyapi.com/api.php/provide/vod","name":"TV-ikun资源","detail":"https://ikunzyapi.com","isAdult":false},
+  {"id":"wujinapi_cc","api":"https://api.wujinapi.cc/api.php/provide/vod","name":"TV-wujinapi无尽","detail":"https://api.wujinapi.cc/api.php/provide/vod","isAdult":false},
+  {"id":"yayazy","api":"https://cj.yayazy.net/api.php/provide/vod","name":"TV-丫丫点播","detail":"https://cj.yayazy.net","isAdult":false},
+  {"id":"guangsuapi","api":"https://api.guangsuapi.com/api.php/provide/vod","name":"TV-光速资源","detail":"https://api.guangsuapi.com","isAdult":false},
+  {"id":"wolongzyw","api":"https://collect.wolongzyw.com/api.php/provide/vod","name":"TV-卧龙点播","detail":"https://collect.wolongzyw.com","isAdult":false},
+  {"id":"wolongzy_cc","api":"https://collect.wolongzy.cc/api.php/provide/vod","name":"TV-卧龙资源","detail":"https://collect.wolongzy.cc/api.php/provide/vod","isAdult":false},
+  {"id":"wolongzyw_com","api":"https://wolongzyw.com/api.php/provide/vod","name":"TV-卧龙资源","detail":"https://wolongzyw.com","isAdult":false},
+  {"id":"tyyszy","api":"https://tyyszy.com/api.php/provide/vod","name":"TV-天涯资源","detail":"https://tyyszy.com","isAdult":false},
+  {"id":"rycjapi","api":"https://cj.rycjapi.com/api.php/provide/vod","name":"TV-如意资源","detail":"https://cj.rycjapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"xiaomaomi","api":"https://zy.xmm.hk/api.php/provide/vod","name":"TV-小猫咪资源","detail":"https://zy.xmm.hk","isAdult":false},
+  {"id":"xinlangapi","api":"https://api.xinlangapi.com/xinlangapi.php/provide/vod","name":"TV-新浪点播","detail":"https://api.xinlangapi.com","isAdult":false},
+  {"id":"wujinapi_com","api":"https://api.wujinapi.com/api.php/provide/vod","name":"TV-无尽资源","detail":"https://api.wujinapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"wujinapi_me","api":"https://api.wujinapi.me/api.php/provide/vod","name":"TV-无尽资源","detail":"https://api.wujinapi.me/api.php/provide/vod","isAdult":false},
+  {"id":"wujinapi_net","api":"https://api.wujinapi.net/api.php/provide/vod","name":"TV-无尽资源","detail":"https://api.wujinapi.net/api.php/provide/vod","isAdult":false},
+  {"id":"wwzy","api":"https://wwzy.tv/api.php/provide/vod","name":"TV-旺旺短剧","detail":"https://wwzy.tv","isAdult":false},
+  {"id":"wwzy_api","api":"https://api.wwzy.tv/api.php/provide/vod","name":"TV-旺旺资源","detail":"https://api.wwzy.tv","isAdult":false},
+  {"id":"bfzyapi","api":"https://bfzyapi.com/api.php/provide/vod","name":"TV-暴风资源","detail":"https://bfzyapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"zuidazy","api":"http://zuidazy.me/api.php/provide/vod","name":"TV-最大点播","detail":"http://zuidazy.me","isAdult":false},
+  {"id":"zuidapi","api":"https://api.zuidapi.com/api.php/provide/vod","name":"TV-最大资源","detail":"https://api.zuidapi.com","isAdult":false},
+  {"id":"apiyhzy","api":"https://m3u8.apiyhzy.com/api.php/provide/vod","name":"TV-樱花资源","detail":"https://m3u8.apiyhzy.com/api.php/provide/vod","isAdult":false},
+  {"id":"yparse","api":"https://api.yparse.com/api/json","name":"TV-步步高资源","detail":"https://api.yparse.com/api/json","isAdult":false},
+  {"id":"niuniuzy","api":"https://api.niuniuzy.me/api.php/provide/vod","name":"TV-牛牛点播","detail":"https://api.niuniuzy.me","isAdult":false},
+  {"id":"dyttzyapi","api":"http://caiji.dyttzyapi.com/api.php/provide/vod","name":"TV-电影天堂资源","detail":"http://caiji.dyttzyapi.com","isAdult":false},
+  {"id":"bwzyz","api":"https://api.bwzyz.com/api.php/provide/vod","name":"AV-百万资源","detail":"https://api.bwzyz.com","isAdult":true},
+  {"id":"apibdzy","api":"https://api.apibdzy.com/api.php/provide/vod","name":"TV-百度云资源","detail":"https://api.apibdzy.com","isAdult":false},
+  {"id":"1080zyku_json","api":"https://api.1080zyku.com/inc/apijson.php/","name":"TV-神马云","detail":"https://api.1080zyku.com","isAdult":false},
+  {"id":"suoniapi","api":"https://suoniapi.com/api.php/provide/vod","name":"TV-索尼资源","detail":"https://suoniapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"hongniuzy2","api":"https://www.hongniuzy2.com/api.php/provide/vod","name":"TV-红牛资源","detail":"https://www.hongniuzy2.com","isAdult":false},
+  {"id":"maotaizy","api":"https://caiji.maotaizy.cc/api.php/provide/vod","name":"TV-茅台资源","detail":"https://caiji.maotaizy.cc","isAdult":false},
+  {"id":"huyaapi","api":"https://www.huyaapi.com/api.php/provide/vod","name":"TV-虎牙资源","detail":"https://www.huyaapi.com","isAdult":false},
+  {"id":"dbzy_caiji","api":"https://caiji.dbzy.tv/api.php/provide/vod","name":"TV-豆瓣资源","detail":"https://caiji.dbzy.tv","isAdult":false},
+  {"id":"dbzy","api":"https://dbzy.tv/api.php/provide/vod","name":"TV-豆瓣资源","detail":"https://dbzy.tv","isAdult":false},
+  {"id":"hhzyapi","api":"https://hhzyapi.com/api.php/provide/vod","name":"TV-豪华资源","detail":"https://hhzyapi.com","isAdult":false},
+  {"id":"subocaiji","api":"https://subocaiji.com/api.php/provide/vod","name":"TV-速博资源","detail":"https://subocaiji.com/api.php/provide/vod","isAdult":false},
+  {"id":"lziapi","api":"https://cj.lziapi.com/api.php/provide/vod","name":"TV-量子资源","detail":"https://cj.lziapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"jinyingzy","api":"https://jinyingzy.com/api.php/provide/vod","name":"TV-金鹰点播","detail":"https://jinyingzy.com","isAdult":false},
+  {"id":"jyzyapi","api":"https://jyzyapi.com/api.php/provide/vod","name":"TV-金鹰资源","detail":"https://jyzyapi.com","isAdult":false},
+  {"id":"sdzyapi","api":"https://sdzyapi.com/api.php/provide/vod","name":"TV-闪电资源","detail":"https://sdzyapi.com","isAdult":false},
+  {"id":"ffzyapi","api":"https://cj.ffzyapi.com/api.php/provide/vod","name":"TV-非凡资源","detail":"https://cj.ffzyapi.com","isAdult":false},
+  {"id":"p2100","api":"https://p2100.net/api.php/provide/vod","name":"TV-飘零资源","detail":"https://p2100.net","isAdult":false},
+  {"id":"mozhuazy","api":"https://mozhuazy.com/api.php/provide/vod","name":"TV-魔爪资源","detail":"https://mozhuazy.com","isAdult":false},
+  {"id":"moduapi","api":"https://caiji.moduapi.cc/api.php/provide/vod","name":"TV-魔都动漫","detail":"https://caiji.moduapi.cc","isAdult":false},
+  {"id":"mdzyapi","api":"https://www.mdzyapi.com/api.php/provide/vod","name":"TV-魔都资源","detail":"https://www.mdzyapi.com","isAdult":false},
+  {"id":"heimuer","api":"https://json.heimuer.xyz/api.php/provide/vod","name":"TV-黑木耳","detail":"https://json.heimuer.xyz","isAdult":false},
+  {"id":"heimuer02","api":"https://json02.heimuer.xyz/api.php/provide/vod","name":"TV-黑木耳点播","detail":"https://json02.heimuer.xyz","isAdult":false},
+  {"id":"91md","api":"https://91md.me/api.php/provide/vod","name":"AV-91麻豆","detail":"https://91md.me","isAdult":true},
+  {"id":"lbapiby","api":"http://lbapiby.com/api.php/provide/vod","name":"AV-AIvin","detail":"http://lbapiby.com/api.php/provide/vod","isAdult":true},
+  {"id":"jkunzyapi","api":"https://jkunzyapi.com/api.php/provide/vod","name":"AV-JKUN资源","detail":"https://jkunzyapi.com","isAdult":true},
+  {"id":"souavzy","api":"https://api.souavzy.vip/api.php/provide/vod","name":"AV-souav资源","detail":"https://api.souavzy.vip","isAdult":true},
+  {"id":"lbapi9","api":"https://lbapi9.com/api.php/provide/vod","name":"AV-乐播资源","detail":"https://lbapi9.com/api.php/provide/vod","isAdult":true},
+  {"id":"aosikazy","api":"https://aosikazy.com/api.php/provide/vod","name":"AV-奥斯卡资源","detail":"https://aosikazy.com","isAdult":true},
+  {"id":"naixxzy","api":"https://Naixxzy.com/api.php/provide/vod","name":"AV-奶香香","detail":"https://Naixxzy.com","isAdult":true},
+  {"id":"slapibf","api":"https://slapibf.com/api.php/provide/vod","name":"AV-森林资源","detail":"https://slapibf.com","isAdult":true},
+  {"id":"xrbsp","api":"https://www.xrbsp.com/api/json.php","name":"AV-淫水机资源","detail":"https://www.xrbsp.com","isAdult":true},
+  {"id":"apiyutu","api":"https://apiyutu.com/api.php/provide/vod","name":"AV-玉兔资源","detail":"https://apiyutu.com","isAdult":true},
+  {"id":"fhapi9","api":"http://fhapi9.com/api.php/provide/vod","name":"AV-番号资源","detail":"http://fhapi9.com/api.php/provide/vod","isAdult":true},
+  {"id":"kxgav","api":"https://www.kxgav.com/api/json.php","name":"AV-白嫖资源","detail":"https://www.kxgav.com","isAdult":true},
+  {"id":"jingpinx","api":"https://www.jingpinx.com/api.php/provide/vod","name":"AV-精品资源","detail":"https://www.jingpinx.com","isAdult":true},
+  {"id":"msnii","api":"https://www.msnii.com/api/json.php","name":"AV-美少女资源","detail":"https://www.msnii.com","isAdult":true},
+  {"id":"apilsbzy1","api":"https://apilsbzy1.com/api.php/provide/vod","name":"AV-老色逼资源","detail":"https://apilsbzy1.com","isAdult":true},
+  {"id":"sexnguon","api":"https://api.sexnguon.com/api.php/provide/vod","name":"AV-色嗨国","detail":"https://api.sexnguon.com","isAdult":true},
+  {"id":"maozyapi","api":"https://api.maozyapi.com/inc/apijson_vod.php","name":"AV-色猫资源","detail":"https://api.maozyapi.com","isAdult":true},
+  {"id":"apilj","api":"https://apilj.com/api.php/provide/vod","name":"AV-辣椒资源","detail":"https://apilj.com","isAdult":true},
+  {"id":"gdlsp","api":"https://www.gdlsp.com/api/json.php","name":"AV-香奶儿资源","detail":"https://www.gdlsp.com","isAdult":true},
+  {"id":"shayuapi","api":"https://shayuapi.com/api.php/provide/vod","name":"AV-鲨鱼资源","detail":"https://shayuapi.com","isAdult":true},
+  {"id":"pgxdy","api":"https://www.pgxdy.com/api/json.php","name":"AV-黄AV资源","detail":"https://www.pgxdy.com","isAdult":true},
+  {"id":"ffzynew","api":"https://api.ffzyapi.com/api.php/provide/vod","name":"非凡影视new","detail":"http://ffzy5.tv","isAdult":false},
+  {"id":"jszyapi","api":"https://jszyapi.com/api.php/provide/vod","name":"极速资源","detail":"https://jszyapi.com","isAdult":false},
+  {"id":"gayapi","api":"https://gayapi.com/api.php/provide/vod","name":"快播资源网站","detail":"https://gayapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"xingba111","api":"https://xingba111.com/api.php/provide/vod","name":"性吧资源","detail":"https://xingba111.com/api.php/provide/vod","isAdult":true},
+  {"id":"aiduanju","api":"https://www.aiduanju.cc/","name":"爱短剧.cc","detail":"https://www.aiduanju.cc/","isAdult":false},
+  {"id":"huawei8","api":"https://huawei8.live/api.php/provide/vod","name":"华为吧资源","detail":"https://huawei8.live/api.php/provide/vod","isAdult":false},
+  {"id":"taopianapi","api":"https://taopianapi.com/cjapi/sda/vod","name":"淘片资源","detail":"https://taopianapi.com/cjapi/sda/vod","isAdult":false},
+  {"id":"hongniuzy3","api":"https://www.hongniuzy3.com/api.php/provide/vod","name":"红牛资源","detail":"https://www.hongniuzy3.com/api.php/provide/vod","isAdult":false},
+  {"id":"xsd_sdzyapi","api":"https://xsd.sdzyapi.com/api.php/provide/vod","name":"索尼-闪电资源","detail":"https://xsd.sdzyapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"jyzyapi_provide","api":"https://jyzyapi.com/provide/vod","name":"金鹰资源采集网","detail":"https://jyzyapi.com/provide/vod","isAdult":false},
+  {"id":"fczy888","api":"https://api.fczy888.me/api.php/provide/vod","name":"蜂巢片库","detail":"https://api.fczy888.me/api.php/provide/vod","isAdult":false},
+  {"id":"jmzy","api":"https://api.jmzy.com/api.php/provide/vod","name":"金马资源网","detail":"https://api.jmzy.com/api.php/provide/vod","isAdult":false},
+  {"id":"dadiapi","api":"https://dadiapi.com/api.php/provide/vod","name":"大地资源网络","detail":"https://dadiapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"hsckzy888","api":"https://hsckzy888.com/api.php/provide/vod","name":"黄色资源啊啊","detail":"https://hsckzy888.com/api.php/provide/vod","isAdult":true},
+  {"id":"xiaojizy","api":"https://api.xiaojizy.live/provide/vod","name":"小鸡资源","detail":"https://api.xiaojizy.live/provide/vod","isAdult":false},
+  {"id":"kuaichezy","api":"https://caiji.kuaichezy.org/api.php/provide","name":"快车资源阿","detail":"https://caiji.kuaichezy.org/api.php/provide","isAdult":false},
+  {"id":"xinlangapi_provide","api":"https://api.xinlangapi.com/xinlangapi.php/provide/vod","name":"新浪资源阿","detail":"https://api.xinlangapi.com/xinlangapi.php/provide/vod","isAdult":false},
+  {"id":"apilj_provide","api":"https://apilj.com/api.php/provide","name":"辣椒资源黄黄","detail":"https://apilj.com/api.php/provide","isAdult":false},
+  {"id":"yzzy_api","api":"https://api.yzzy-api.com/inc/ldg_api_all.php/provide/vod","name":"优质资源库1080zyk6.com高清","detail":"https://api.yzzy-api.com/inc/ldg_api_all.php/provide/vod","isAdult":false},
+  {"id":"iqiyizyapi","api":"https://www.iqiyizyapi.com/api.php/provide/vod","name":"iqiyi资源","detail":"https://www.iqiyizyapi.com/api.php/provide/vod","isAdult":false},
+  {"id":"xxibaozyw","api":"https://www.xxibaozyw.com/api.php/provide/vod","name":"细胞采集黄色","detail":"https://www.xxibaozyw.com/api.php/provide/vod","isAdult":true},
+  {"id":"qiqidys","api":"https://www.qiqidys.com/api.php/provide/vod/","name":"七七影视","detail":"https://www.qiqidys.com/api.php/provide/vod/","isAdult":false}
+];
+const SITE_MAP = Object.fromEntries(SITES.map((site) => [site.id, site]));
+const INCLUDE_ADULT = true;
+const SITE_IDS = SITES.filter((site) => INCLUDE_ADULT || !site.isAdult).map((site) => site.id);
+const classCache = new Map();
+const BASE_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'zh-CN,zh;q=0.9'
+};
+
+function log(level, message, data) {
+  try {
+    const suffix = data === undefined ? '' : `: ${JSON.stringify(data)}`;
+    OmniBox.log(level, `[基础班20站+] ${message}${suffix}`);
+  } catch (_) {}
+}
+function siteOrigin(site) {
+  try {
+    return new URL(site.detail || site.api).origin;
+  } catch (_) {
+    return site.detail || site.api;
+  }
+}
+
+function requestHeaders(site) {
+  const origin = siteOrigin(site);
+  return { ...BASE_HEADERS, Referer: origin, Origin: origin };
+}
+
+function buildUrl(site, params) {
+  const url = new URL(site.api);
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
+  });
+  return url.toString();
+}
+function parseJson(body) {
+  if (!body) return {};
+  if (typeof body === 'object') return body;
+  const text = String(body).replace(/^\uFEFF/, '').trim();
+  const jsonp = text.match(/^[\w$.]+\((.*)\);?$/s);
+  return JSON.parse(jsonp ? jsonp[1] : text);
+}
+
+async function requestJson(sourceId, params, label) {
+  const site = SITE_MAP[sourceId];
+  const url = buildUrl(site, params);
+  try {
+    const response = await OmniBox.request(url, { method: 'GET', headers: requestHeaders(site), timeout: 10000 });
+    const status = response.statusCode || response.status || 200;
+    if (status < 200 || status >= 300) throw new Error(`HTTP ${status}`);
+    return parseJson(response.body);
+  } catch (error) {
+    log('warn', `${label || '请求'}失败 ${site.name}`, { url, error: error.message || String(error) });
+    throw error;
+  }
+}
+function num(value, fallback = 0) {
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
+function pick(obj, keys, fallback = '') {
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+  }
+  return fallback;
+}
+
+function makeVideoId(sourceId, rawId) {
+  return `${sourceId}${ID_SEP}${rawId}`;
+}
+
+function parseVideoId(videoId) {
+  const text = String(videoId || '');
+  const index = text.indexOf(ID_SEP);
+  if (index > 0) return { sourceId: text.slice(0, index), rawId: text.slice(index + ID_SEP.length) };
+  return { sourceId: SITE_IDS[0], rawId: text };
+}
+function encodeMeta(obj) {
+  try {
+    return Buffer.from(JSON.stringify(obj || {}), 'utf8').toString('base64');
+  } catch (_) {
+    return '';
+  }
+}
+
+function decodeMeta(value) {
+  try {
+    return JSON.parse(Buffer.from(value || '', 'base64').toString('utf8') || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+function absolutePic(pic, site) {
+  if (!pic) return '';
+  const value = String(pic).trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  try {
+    return new URL(value, site.detail || site.api).toString();
+  } catch (_) {
+    return value;
+  }
+}
+function formatList(sourceId, rawList) {
+  const site = SITE_MAP[sourceId];
+  return (Array.isArray(rawList) ? rawList : []).map((item) => {
+    const rawId = pick(item, ['vod_id', 'id', '_id']);
+    if (!rawId) return null;
+    const remark = pick(item, ['vod_remarks', 'remarks', 'state', 'note']);
+    return {
+      vod_id: makeVideoId(sourceId, rawId),
+      vod_name: String(pick(item, ['vod_name', 'name', 'title'], '未知标题')),
+      vod_pic: absolutePic(pick(item, ['vod_pic', 'pic', 'cover', 'poster']), site),
+      vod_remarks: [site.name, remark].filter(Boolean).join(' · ')
+    };
+  }).filter(Boolean);
+}
+
+function splitGroups(value) {
+  return String(value || '').split('$$$').map((item) => item.trim());
+}
+
+function parseEpisode(text, index) {
+  const item = String(text || '').trim();
+  if (!item) return null;
+  const split = item.indexOf('$');
+  if (split >= 0) return { name: item.slice(0, split).trim() || `第${index + 1}集`, url: item.slice(split + 1).trim() };
+  return { name: `第${index + 1}集`, url: item };
+}
+function playSources(sourceId, video) {
+  const site = SITE_MAP[sourceId];
+  const from = splitGroups(video.vod_play_from);
+  const urlGroups = splitGroups(video.vod_play_url);
+  const vodName = String(pick(video, ['vod_name', 'name', 'title']));
+  const vodId = String(pick(video, ['vod_id', 'id', '_id']));
+  return urlGroups.map((group, groupIndex) => {
+    const sourceName = from[groupIndex] || `线路${groupIndex + 1}`;
+    const episodes = group.split('#').map(parseEpisode).filter((ep) => ep && ep.url).map((ep) => ({
+      name: ep.name,
+      playId: `${encodeURIComponent(ep.url)}${PLAY_SEP}${encodeMeta({ sourceId, siteName: site.name, sourceName, vodId, vodName, episodeName: ep.name })}`
+    }));
+    return episodes.length ? { name: sourceName, episodes } : null;
+  }).filter(Boolean);
+}
+
+function legacyPlayFrom(sources) {
+  return sources.map((source) => source.name).join('$$$');
+}
+
+function legacyPlayUrl(sources) {
+  return sources.map((source) => source.episodes.map((ep) => `${ep.name}$${ep.playId}`).join('#')).join('$$$');
+}
+async function sourceClasses(sourceId) {
+  const cached = classCache.get(sourceId);
+  if (cached && Date.now() - cached.time < CACHE_MS) return cached.value;
+  let data = {};
+  try {
+    data = await requestJson(sourceId, { ac: 'list' }, '获取分类');
+  } catch (_) {
+    try {
+      data = await requestJson(sourceId, { ac: 'class' }, '获取分类');
+    } catch (_) {
+      classCache.set(sourceId, { time: Date.now(), value: [] });
+      return [];
+    }
+  }
+  const raw = data.class || data.type || [];
+  const list = (Array.isArray(raw) ? raw : Object.values(raw)).map((item) => {
+    const value = pick(item, ['type_id', 'id', 'tid', 'value', 'v']);
+    const name = pick(item, ['type_name', 'name', 'title', 'n']);
+    return value && name ? { name: String(name), value: String(value) } : null;
+  }).filter(Boolean);
+  classCache.set(sourceId, { time: Date.now(), value: list });
+  return list;
+}
+async function categoryList(sourceId, page, filters = {}) {
+  const typeId = filters.type || filters.cateId || filters.t || '';
+  const params = { ac: 'videolist', pg: page };
+  if (typeId) params.t = typeId;
+  try {
+    const data = await requestJson(sourceId, params, '获取列表');
+    const list = formatList(sourceId, data.list || data.data || []);
+    const current = num(data.page, num(page, 1));
+    return {
+      list,
+      page: current,
+      pagecount: num(data.pagecount, list.length ? current + 1 : current),
+      limit: num(data.limit, list.length),
+      total: num(data.total, list.length)
+    };
+  } catch (_) {
+    return { list: [], page: num(page, 1), pagecount: 0, total: 0 };
+  }
+}
+async function home() {
+  const classes = SITE_IDS.map((id) => ({ type_id: id, type_name: SITE_MAP[id].name }));
+  const filters = {};
+  const classResults = await Promise.allSettled(SITE_IDS.map((id) => sourceClasses(id)));
+  classResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value.length) {
+      filters[SITE_IDS[index]] = [{ key: 'type', name: '分类', init: '', value: [{ name: '全部', value: '' }, ...result.value] }];
+    }
+  });
+  const recommends = await Promise.allSettled(SITE_IDS.slice(0, 4).map((id) => categoryList(id, 1, {})));
+  const list = recommends.filter((r) => r.status === 'fulfilled').flatMap((r) => r.value.list || []).slice(0, 40);
+  return { class: classes, filters, list };
+}
+
+async function category(params = {}) {
+  const sourceId = params.categoryId || params.tid || params.type_id || SITE_IDS[0];
+  if (!SITE_MAP[sourceId]) return { list: [], page: 1, pagecount: 0, total: 0 };
+  return categoryList(sourceId, params.page || params.pg || 1, params.filters || params.extend || {});
+}
+async function search(params = {}) {
+  const keyword = params.keyword || params.wd || params.search || '';
+  const page = params.page || params.pg || 1;
+  if (!keyword) return { list: [], page: 1, pagecount: 0, total: 0 };
+  const results = await Promise.allSettled(SITE_IDS.map(async (id) => {
+    const data = await requestJson(id, { ac: 'videolist', wd: keyword, pg: page }, '搜索');
+    const list = formatList(id, data.list || data.data || []);
+    return { list, total: num(data.total, list.length) };
+  }));
+  const fulfilled = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+  const list = fulfilled.flatMap((item) => item.list || []);
+  const total = fulfilled.reduce((sum, item) => sum + num(item.total, item.list.length), 0);
+  return { list, page: num(page, 1), pagecount: list.length ? num(page, 1) + 1 : num(page, 1), total: total || list.length };
+}
+async function fetchDetail(sourceId, rawId) {
+  let data = await requestJson(sourceId, { ac: 'detail', ids: rawId }, '获取详情');
+  let list = data.list || data.data || [];
+  if (!Array.isArray(list) || !list.length) {
+    data = await requestJson(sourceId, { ac: 'videolist', ids: rawId }, '获取详情');
+    list = data.list || data.data || [];
+  }
+  return Array.isArray(list) ? list[0] : null;
+}
+
+async function detail(params = {}) {
+  const videoId = params.videoId || params.ids || params.id || '';
+  if (!videoId) return { list: [] };
+  const { sourceId, rawId } = parseVideoId(videoId);
+  if (!SITE_MAP[sourceId] || !rawId) return { list: [] };
+  try {
+    const video = await fetchDetail(sourceId, rawId);
+    if (!video) return { list: [] };
+    const sources = playSources(sourceId, video);
+    return { list: [{
+      vod_id: makeVideoId(sourceId, pick(video, ['vod_id', 'id', '_id'], rawId)),
+      vod_name: String(pick(video, ['vod_name', 'name', 'title'], '未知标题')),
+      vod_pic: absolutePic(pick(video, ['vod_pic', 'pic', 'cover', 'poster']), SITE_MAP[sourceId]),
+      vod_remarks: pick(video, ['vod_remarks', 'remarks', 'state', 'note']),
+      vod_year: pick(video, ['vod_year', 'year']),
+      vod_area: pick(video, ['vod_area', 'area']),
+      vod_actor: pick(video, ['vod_actor', 'actor', 'actors']),
+      vod_director: pick(video, ['vod_director', 'director']),
+      vod_content: pick(video, ['vod_content', 'content', 'description', 'desc']),
+      vod_play_sources: sources,
+      vod_play_from: legacyPlayFrom(sources),
+      vod_play_url: legacyPlayUrl(sources)
+    }] };
+  } catch (error) {
+    log('error', '详情处理失败', { videoId, error: error.message || String(error) });
+    return { list: [] };
+  }
+}
+function splitPlayId(playId) {
+  const text = String(playId || '');
+  const index = text.indexOf(PLAY_SEP);
+  if (index < 0) return { url: text, meta: {} };
+  return { url: text.slice(0, index), meta: decodeMeta(text.slice(index + PLAY_SEP.length)) };
+}
+
+function directUrl(url) {
+  return /\.(m3u8|mp4|flv|mkv|avi|mov|ts)(\?|#|$)/i.test(url || '') || /m3u8/i.test(url || '');
+}
+
+async function play(params = {}, context = {}) {
+  const playId = params.playId || params.id || params.url || '';
+  if (!playId) return { urls: [], parse: 0, header: {} };
+  const parsed = splitPlayId(playId);
+  let url = parsed.url;
+  try {
+    url = decodeURIComponent(parsed.url);
+  } catch (_) {}
+  const site = SITE_MAP[parsed.meta.sourceId] || SITE_MAP[SITE_IDS[0]];
+  const header = context.from === 'web' ? {} : requestHeaders(site);
+  return {
+    urls: [{ name: parsed.meta.episodeName || '播放', url }],
+    parse: directUrl(url) ? 0 : 1,
+    header
+  };
+}
+
+module.exports = { home, category, search, detail, play };
+
+const runner = require('spider_runner');
+runner.run(module.exports);
